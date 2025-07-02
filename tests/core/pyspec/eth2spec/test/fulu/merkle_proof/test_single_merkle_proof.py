@@ -47,11 +47,14 @@ def _run_blob_kzg_commitments_merkle_proof_test(spec, state, rng=None, blob_coun
     yield "object", block.body
     kzg_commitments_inclusion_proof = column_sidcar.kzg_commitments_inclusion_proof
     gindex = spec.get_generalized_index(spec.BeaconBlockBody, "blob_kzg_commitments")
-    yield "proof", {
-        "leaf": "0x" + column_sidcar.kzg_commitments.hash_tree_root().hex(),
-        "leaf_index": gindex,
-        "branch": ["0x" + root.hex() for root in kzg_commitments_inclusion_proof],
-    }
+    yield (
+        "proof",
+        {
+            "leaf": "0x" + column_sidcar.kzg_commitments.hash_tree_root().hex(),
+            "leaf_index": gindex,
+            "branch": ["0x" + root.hex() for root in kzg_commitments_inclusion_proof],
+        },
+    )
     assert spec.is_valid_merkle_branch(
         leaf=column_sidcar.kzg_commitments.hash_tree_root(),
         branch=column_sidcar.kzg_commitments_inclusion_proof,
@@ -82,7 +85,7 @@ def test_blob_kzg_commitments_merkle_proof__random_block_1(spec, state):
 @with_fulu_and_later
 @spec_state_test
 def test_blob_kzg_commitments_merkle_proof__multiple_blobs(spec, state):
-    blob_count = spec.get_max_blobs_per_block(spec.get_current_epoch(state)) // 2
+    blob_count = spec.get_blob_parameters(spec.get_current_epoch(state)).max_blobs_per_block // 2
     rng = random.Random(2222)
     yield from _run_blob_kzg_commitments_merkle_proof_test(
         spec, state, rng=rng, blob_count=blob_count
@@ -93,7 +96,7 @@ def test_blob_kzg_commitments_merkle_proof__multiple_blobs(spec, state):
 @with_fulu_and_later
 @spec_state_test
 def test_blob_kzg_commitments_merkle_proof__max_blobs(spec, state):
-    max_blobs = spec.get_max_blobs_per_block(spec.get_current_epoch(state))
+    max_blobs = spec.get_blob_parameters(spec.get_current_epoch(state)).max_blobs_per_block
     rng = random.Random(3333)
     yield from _run_blob_kzg_commitments_merkle_proof_test(
         spec, state, rng=rng, blob_count=max_blobs
